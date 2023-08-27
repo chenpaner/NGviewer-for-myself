@@ -34,41 +34,6 @@ def draw_trial(col):
     row.alert = True
     row.label(text="Trial Version")
 
-def node_group_enum(self, context):#这个方法用于生成一个枚举列表，用于显示在面板上的节点组选择下拉框
-    enum_items = []
-    node_group_names = []
-    node_group_labels = []
-    ng_tool = bpy.context.scene.ng_tool
-    #nodes = bpy.data.materials[ng_tool.material].node_tree.nodes
-    nodes = bpy.context.active_object.active_material.node_tree.nodes
-
-    for node in nodes:
-        if node.type == 'GROUP':
-            usable_inputs = 0
-            if not ng_tool.show_non_input_groups:
-                for input in node.inputs:
-                    if input.enabled and not input.is_linked:
-                        usable_inputs += 1
-                if len(node.inputs) == usable_inputs:
-                    node_group_names.append(node.name)
-                    node_group_labels.append(node.label)
-            else:
-                node_group_names.append(node.name)
-                node_group_labels.append(node.label)
-
-    for group, label in zip(node_group_names, node_group_labels):
-
-        if label == "":
-            enum_items.append((group,
-                            group,
-                            group,
-                            ))
-        else:
-            enum_items.append((group,
-                            label,
-                            group,
-                            ))
-    return enum_items
 
 # 保存字符串引用的全局变量
 enum_strings = []
@@ -78,8 +43,14 @@ def get_node_group_names(self, context):
     #nodes = bpy.data.materials[ng_tool.material].node_tree.nodes
     nodes = bpy.context.active_object.active_material.node_tree.nodes
     for node in nodes:
-        if node.type == 'GROUP':
-            node_group_name = node.node_tree.name  # 获取节点组的名字
+        if node.type == 'GROUP'or node.bl_idname == 'ShaderNodeOutputMaterial': #node.name == 'Material Output':
+            if node.type == 'GROUP':
+                if node.node_tree:
+                    node_group_name = node.node_tree.name  # 获取节点组的名字
+                else:
+                    node_group_name = "节点树丢失了"
+            else:
+                node_group_name = "整个材质"
             full_name = f"{node.name} ({node_group_name})"
             node_group_names.append((full_name, full_name, ""))
             # 将字符串保存到全局变量中，不然无法显示中文
@@ -90,9 +61,7 @@ def get_node_group_names(self, context):
 def draw_sockets(self, context):#绘制节点输入框，显示节点组的输入端口信息
     layout = self.layout
     ng_tool = bpy.context.scene.ng_tool
-    #node_tree = bpy.data.materials[ng_tool.material].node_tree
     node_tree = bpy.context.active_object.active_material.node_tree
-    #group_node = node_tree.nodes[ng_tool.node_group]
 
     selected_option = ng_tool.selected_node_group
     if selected_option:
@@ -145,43 +114,6 @@ class NodeGroupSettings(bpy.types.PropertyGroup):
         description="取消勾选后以自定义方式排布！",
         default=True,
     )
-
-
-
-
-# class PANEL_PT_ng_node_panel(Panel):
-#     """Creates a Panel in the node"""
-#     bl_space_type = "NODE_EDITOR"
-#     bl_idname = "PANEL_PT_ng_node_panel"
-#     bl_region_type = "UI"
-#     bl_label = "NGviewer"
-#     bl_context = "objectmode"
-#     bl_category = "Node"
-
-#     def draw(self, context):
-#         layout = self.layout
-#         ng_tool = bpy.context.scene.ng_tool
-#         col = layout.column(align = True)
-#         col.alignment = "CENTER"
-#         # col.label(text = """WARNING: Dont use this button """,icon = "ERROR")
-#         # col.label(text = """while not in the node group """)
-#         # col.label(text = """edit mode, as it will mess some stuff up""")
-#         col.label(text = "使用这个按钮之前确保你在节点组里面")
-#         row = col.row(align = True)
-#         row.scale_y = 2
-#         row.scale_x = 2
-#         row.operator("object.new_box", icon = "ADD")
-#         row.prop(ng_tool, "show_node_box_info", text = "", icon = "QUESTION")
-#         if ng_tool.show_node_box_info:
-#             info_box = col.box()
-#             info_box.label(text = "添加群组:")
-#             info_box = info_box.column(align = False)
-#             info_box.scale_y = 0.8
-#             info_box.label(text = "1.在下面的‘界面’面板中")
-#             info_box.label(text = "    选择要添加到组中的节点输入")
-#             info_box.label(text = "2.按“新建盒子组”按钮并输入该组的名称")
-#             info_box.label(text = "3.如果您只想名称与所选输入相同")
-#             info_box.label(text = "    不要在框中输入任何内容")
             
 class PANEL_PT_ng_node_panel1(Panel):
     """Creates a Panel in the Tool panel"""
@@ -189,7 +121,7 @@ class PANEL_PT_ng_node_panel1(Panel):
     bl_idname = "PANEL_PT_ng_node_panel1"
     bl_region_type = "UI"
     bl_label = "NGviewer"
-    bl_category = "NGviewer"
+    bl_category = "材质"
     # ng_tool = bpy.context.scene.ng_tool
     #  if ng_tool.category is "Tool":
     #     bl_category = "Tool"
@@ -326,7 +258,6 @@ class NG_OT_add_box_separator(bpy.types.Operator):
                 node.inputs[index].name = self.name
                 bpy.data.node_groups[name].inputs[index].name = self.name
         return{'FINISHED'}
-
 
 classes = (
     NodeGroupSettings,
