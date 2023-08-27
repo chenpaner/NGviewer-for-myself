@@ -14,7 +14,14 @@ To install this addon:
 3. Install the addon in the blender preferences
 
 # Updates:
+    23/8/27: beta 1.4
 
+    Warning: This is a modified version according to my own habits, the words in the panel I translated into Chinese!
+    Support for non-English node names is now supported
+    Fixed UnicodeDecodeError: 'utf-8' codec can't decode byte 0xf0 in position 0: invalid continuation byteel.decode('utf-8')
+    Add display node group name after the node's name
+    Adjusted the display of node groups
+    
     21/5/20: beta 1.3
     
     Fixed bugs with alignment
